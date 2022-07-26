@@ -1,9 +1,12 @@
+import ThemeLayout from "./Layouts/ThemeLayout";
 import AppRoutes from "./Routes";
 
 function App() {
   return (
     <div className="App">
-      <AppRoutes />
+      <ThemeLayout>
+        <AppRoutes />
+      </ThemeLayout>
     </div>
   );
 }
