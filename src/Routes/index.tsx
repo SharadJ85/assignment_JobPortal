@@ -7,6 +7,7 @@ import {
 import { routePaths } from "../api/routePaths";
 import AppLayout from "../Layouts/App";
 import HomePage from "../Pages/Home";
+import JobsPage from "../Pages/Jobs";
 import JobPage from "../Pages/Job";
 import NotFound from "../Pages/NotFound";
 
@@ -19,7 +20,8 @@ export default function AppRoutes() {
           element={<AppLayout />}
         >
           <Route index element={<HomePage />} />
-          <Route path={routePaths.job}>
+          <Route path={routePaths.jobs}>
+            <Route index element={<JobsPage />} />
             <Route
               path={routePaths.p_jobId}
               element={<JobPage />}

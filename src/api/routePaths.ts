@@ -1,7 +1,7 @@
 export const routePaths = {
   // Pages
   root: "/",
-  job: "job",
+  jobs: "jobs",
 
   // params
   p_jobId: ":jobId",
