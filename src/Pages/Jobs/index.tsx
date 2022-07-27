@@ -6,6 +6,8 @@ import Paper from "@mui/material/Paper";
 import InputBase from "@mui/material/InputBase";
 import IconButton from "@mui/material/IconButton";
 import SearchIcon from "@mui/icons-material/Search";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
+import ApartmentIcon from "@mui/icons-material/Apartment";
 import Autocomplete from "@mui/material/Autocomplete";
 import CircularProgress from "@mui/material/CircularProgress";
 import TextField from "@mui/material/TextField";
@@ -19,6 +21,13 @@ import {
   GetDepartmentsEachType,
   GetFunctionsEachType,
 } from "../../Shared/Models/LookUps";
+import { getJobs } from "../../Shared/Services/getJobs";
+import { GetJobsListType } from "../../Shared/Models/Jobs";
+import { SortByName } from "../../Shared/Helpers/common";
+import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
+import Button from "@mui/material/Button";
+import EachJob from "../../Components/EachJob";
 
 export default function JobsPage() {
   const [loadingDropDowns, setLoadingDropDowns] =
@@ -69,8 +78,28 @@ export default function JobsPage() {
     }
   };
 
+  const [loadingJobsList, setLoadingJobsList] =
+    useState(true);
+  const [jobsList, setJobsList] = useState<GetJobsListType>(
+    []
+  );
+
+  const fetchJobsList = async () => {
+    try {
+      setLoadingJobsList(true);
+      const res = await getJobs();
+      const sortedList = SortByName(res, "function.title");
+      setJobsList(sortedList);
+    } catch (error) {
+      return axiosErrHandle(error);
+    } finally {
+      setLoadingJobsList(false);
+    }
+  };
+
   useEffect(() => {
     fetchLookUps();
+    fetchJobsList();
   }, []);
 
   return (
@@ -117,7 +146,7 @@ export default function JobsPage() {
                   option.title || ""
                 }
                 options={filterLookUpsList.locations}
-                loading={loadingDropDowns}
+                loading={!loadingDropDowns}
                 sx={{
                   bgcolor: "background.paper",
                   "& input": {
@@ -127,7 +156,12 @@ export default function JobsPage() {
                         theme.palette.background.paper
                       ),
                   },
+                  "& .MuiInputBase-root": {
+                    display: "inline-flex",
+                    flexWrap: "nowrap",
+                  },
                 }}
+                value={selectedFilters.location}
                 onChange={(e, val) =>
                   setSelectedFilters({
                     ...selectedFilters,
@@ -177,7 +211,12 @@ export default function JobsPage() {
                         theme.palette.background.paper
                       ),
                   },
+                  "& .MuiInputBase-root": {
+                    display: "inline-flex",
+                    flexWrap: "nowrap",
+                  },
                 }}
+                value={selectedFilters.department}
                 onChange={(e, val) =>
                   setSelectedFilters({
                     ...selectedFilters,
@@ -227,7 +266,12 @@ export default function JobsPage() {
                         theme.palette.background.paper
                       ),
                   },
+                  "& .MuiInputBase-root": {
+                    display: "inline-flex",
+                    flexWrap: "nowrap",
+                  },
                 }}
+                value={selectedFilters.function}
                 onChange={(e, val) =>
                   setSelectedFilters({
                     ...selectedFilters,
@@ -258,7 +302,48 @@ export default function JobsPage() {
             </Grid>
           </Grid>
         </Box>
-        <Box sx={{ bgcolor: "#cfe8fc" }}></Box>
+        <Box sx={{ bgcolor: "#fff", mt: 2 }}>
+          <Stack spacing={2}>
+            {jobsList.map((job, ind) => {
+              const checkPrevFunctionTitle =
+                job.function.id !==
+                jobsList[ind - 1]?.function.id;
+
+              return (
+                <Box key={ind}>
+                  {checkPrevFunctionTitle ? (
+                    <>
+                      <Typography
+                        variant="h4"
+                        gutterBottom
+                        component="div"
+                        sx={{ mt: 3, fontWeight: 600 }}
+                      >
+                        {job.function.title}
+                      </Typography>
+                      <Box
+                        sx={{
+                          bgcolor: (theme) =>
+                            theme.palette.primary.main,
+                          height: "0.3rem",
+                          width: "5rem",
+                          mb: 4,
+                        }}
+                      />
+                    </>
+                  ) : null}
+                  <EachJob
+                    data={job}
+                    setFiltersState={{
+                      setStateFn: setSelectedFilters,
+                      stateValue: selectedFilters,
+                    }}
+                  />
+                </Box>
+              );
+            })}
+          </Stack>
+        </Box>
       </Container>
     </>
   );

@@ -12,6 +12,26 @@ const theme = createTheme({
     primary: {
       main: "#4b96e6",
     },
+    info: {
+      light: "rgb(0 0 0 / 15%)",
+      main: "#0006",
+      dark: "rgb(0 0 0 / 50%)",
+    },
+  },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: 28,
+        },
+        outlinedPrimary: {
+          "&:hover": {
+            background: "#4b96e6",
+            color: "#fff",
+          },
+        },
+      },
+    },
   },
   typography: {
     fontFamily: ["Montserrat", "sans serif"].join(","),
