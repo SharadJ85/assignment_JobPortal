@@ -26,6 +26,10 @@ export default function AppRoutes() {
               path={routePaths.p_jobId}
               element={<JobPage />}
             />
+            <Route
+              path={routePaths.p_jobId + routePaths.apply}
+              element={<div>APPLY FORM</div>}
+            />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Route>

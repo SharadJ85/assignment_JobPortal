@@ -5,6 +5,8 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import { GetJobsEachType } from "../../Shared/Models/Jobs";
+import { useNavigate } from "react-router-dom";
+import { routePaths } from "../../api/routePaths";
 
 type EachJobPropsType = {
   data: GetJobsEachType;
@@ -18,6 +20,7 @@ const EachJob = ({
   data,
   setFiltersState: { setStateFn: setFn, stateValue: value },
 }: EachJobPropsType) => {
+  const navigate = useNavigate();
   return (
     <Grid
       container
@@ -94,8 +97,23 @@ const EachJob = ({
       </Grid>
       <Grid item xs={2}>
         <Stack spacing={2} direction="row">
-          <Button variant="outlined">Apply</Button>
-          <Button variant="text">View</Button>
+          <Button
+            variant="outlined"
+            onClick={() =>
+              navigate(`${data.id}/` + routePaths.apply)
+            }
+          >
+            Apply
+          </Button>
+          <Button
+            variant="text"
+            onClick={() => navigate(`${data.id}/`)}
+            sx={{
+              color: (theme) => theme.palette.info.dark,
+            }}
+          >
+            View
+          </Button>
         </Stack>
       </Grid>
     </Grid>

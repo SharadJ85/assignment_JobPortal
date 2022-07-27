@@ -28,8 +28,18 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import EachJob from "../../Components/EachJob";
+import {
+  useNavigate,
+  useSearchParams,
+} from "react-router-dom";
+import Chip from "@mui/material/Chip";
+import { routePaths } from "../../api/routePaths";
 
 export default function JobsPage() {
+  let [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+
+  // Filter dropdowns
   const [loadingDropDowns, setLoadingDropDowns] =
     useState(true);
 
@@ -46,15 +56,20 @@ export default function JobsPage() {
     });
 
   type selectedFiltersType = {
+    title: string;
     location: GetLocationsEachType | null;
     department: GetDepartmentsEachType | null;
     function: GetFunctionsEachType | null;
   };
+  const initialSelectedFilters = {
+    title: "",
+    location: null,
+    department: null,
+    function: null,
+  };
   const [selectedFilters, setSelectedFilters] =
     useState<selectedFiltersType>({
-      location: null,
-      department: null,
-      function: null,
+      ...initialSelectedFilters,
     });
 
   const fetchLookUps = async () => {
@@ -78,6 +93,7 @@ export default function JobsPage() {
     }
   };
 
+  // jobs list
   const [loadingJobsList, setLoadingJobsList] =
     useState(true);
   const [jobsList, setJobsList] = useState<GetJobsListType>(
@@ -102,10 +118,63 @@ export default function JobsPage() {
     fetchJobsList();
   }, []);
 
+  // GET Params
+  useEffect(() => {
+    // Object.entries(routePaths.s_jobs).forEach(
+    //   ([key, value]) => {
+    //     const data = searchParams.get(value);
+    //     if (data)
+    //       setSelectedFilters({
+    //         ...selectedFilters,
+    //         [key]: data,
+    //       });
+    //   }
+    // );
+  }, [searchParams]);
+
+  // GET Params
+  useEffect(() => {
+    // Object.entries(selectedFilters).forEach(
+    //   ([key, value]) => {
+    //     //  @ts-ignore
+    //     if (value) searchParams.append(key, value?.title);
+    //   }
+    // );
+    setTimeout(() => {
+      const params = routePaths.s_jobs;
+      Object.values(params).forEach((val) =>
+        searchParams.delete(val)
+      );
+
+      if (selectedFilters.title)
+        searchParams.append(
+          params.title,
+          selectedFilters.title
+        );
+      if (selectedFilters.location)
+        searchParams.append(
+          params.location,
+          JSON.stringify(selectedFilters.location.id)
+        );
+      if (selectedFilters.department)
+        searchParams.append(
+          params.department,
+          JSON.stringify(selectedFilters.department.id)
+        );
+      if (selectedFilters.function)
+        searchParams.append(
+          params.function,
+          JSON.stringify(selectedFilters.function.id)
+        );
+      setSearchParams(searchParams);
+    }, 150);
+  }, [selectedFilters]);
+
   return (
     <>
       <Container maxWidth="lg">
-        <Box sx={{ bgcolor: "#0000000d", p: 4 }}>
+        {/*  Filter */}
+        <Box sx={{ bgcolor: "#0000000d", p: 4, my: 2 }}>
           <Grid container spacing={2}>
             <Grid item xs={12}>
               <Paper
@@ -302,46 +371,127 @@ export default function JobsPage() {
             </Grid>
           </Grid>
         </Box>
+        <Box
+          sx={{
+            bgcolor: "#0000000d",
+            p: 4,
+            my: 2,
+            display: Object.values(selectedFilters).some(
+              (el) => el !== null && el !== ""
+            )
+              ? "flex"
+              : "none",
+            justifyContent: "flex-start",
+            alignItems: "center",
+            gap: "1rem",
+            position: "relative",
+          }}
+        >
+          {Object.keys(selectedFilters).map(
+            (el: string, ind) => (
+              <>
+                {/*  @ts-ignore */}
+                {selectedFilters[el] ? (
+                  <Chip
+                    key={ind}
+                    label={
+                      // @ts-ignore
+                      selectedFilters[el]?.title || ""
+                    }
+                    variant="outlined"
+                    onDelete={() =>
+                      setSelectedFilters({
+                        // @ts-ignore
+                        ...selectedFilters,
+                        // @ts-ignore
+                        [el]: null,
+                      })
+                    }
+                  />
+                ) : null}
+              </>
+            )
+          )}
+          <Button
+            variant="text"
+            sx={{
+              position: "absolute",
+              top: "0.5rem",
+              right: "0.5rem",
+              color: (theme) => theme.palette.info.dark,
+            }}
+            onClick={() =>
+              setSelectedFilters({
+                ...initialSelectedFilters,
+              })
+            }
+          >
+            Clear All
+          </Button>
+        </Box>
+        {/*  List */}
         <Box sx={{ bgcolor: "#fff", mt: 2 }}>
           <Stack spacing={2}>
-            {jobsList.map((job, ind) => {
-              const checkPrevFunctionTitle =
-                job.function.id !==
-                jobsList[ind - 1]?.function.id;
+            {loadingJobsList ? (
+              <Box
+                sx={{
+                  height: "10rem",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <CircularProgress />
+              </Box>
+            ) : jobsList.length <= 0 ? (
+              <Typography
+                variant="h5"
+                gutterBottom
+                component="div"
+                sx={{ mt: 3 }}
+              >
+                No Jobs available
+              </Typography>
+            ) : (
+              jobsList.map((job, ind) => {
+                const checkPrevFunctionTitle =
+                  job.function.id !==
+                  jobsList[ind - 1]?.function.id;
 
-              return (
-                <Box key={ind}>
-                  {checkPrevFunctionTitle ? (
-                    <>
-                      <Typography
-                        variant="h4"
-                        gutterBottom
-                        component="div"
-                        sx={{ mt: 3, fontWeight: 600 }}
-                      >
-                        {job.function.title}
-                      </Typography>
-                      <Box
-                        sx={{
-                          bgcolor: (theme) =>
-                            theme.palette.primary.main,
-                          height: "0.3rem",
-                          width: "5rem",
-                          mb: 4,
-                        }}
-                      />
-                    </>
-                  ) : null}
-                  <EachJob
-                    data={job}
-                    setFiltersState={{
-                      setStateFn: setSelectedFilters,
-                      stateValue: selectedFilters,
-                    }}
-                  />
-                </Box>
-              );
-            })}
+                return (
+                  <Box key={ind}>
+                    {checkPrevFunctionTitle ? (
+                      <>
+                        <Typography
+                          variant="h4"
+                          gutterBottom
+                          component="div"
+                          sx={{ mt: 3, fontWeight: 600 }}
+                        >
+                          {job.function.title}
+                        </Typography>
+                        <Box
+                          sx={{
+                            bgcolor: (theme) =>
+                              theme.palette.primary.main,
+                            height: "0.3rem",
+                            width: "5rem",
+                            mb: 4,
+                          }}
+                        />
+                      </>
+                    ) : null}
+                    <EachJob
+                      data={job}
+                      setFiltersState={{
+                        setStateFn: setSelectedFilters,
+                        stateValue: selectedFilters,
+                      }}
+                    />
+                  </Box>
+                );
+              })
+            )}
           </Stack>
         </Box>
       </Container>
